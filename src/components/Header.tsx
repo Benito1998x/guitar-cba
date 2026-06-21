@@ -21,12 +21,16 @@ export default function Header({ cart, dispatch }: HeaderProps) {
             timestamp: new Date().toISOString(),
         }
 
+        console.log('[Exportar y Vaciar] URL:', N8N_WEBHOOK_URL)
+        console.log('[Exportar y Vaciar] Payload:', payload)
+
         if (N8N_WEBHOOK_URL) {
             fetch(N8N_WEBHOOK_URL, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'text/plain' },
                 body: JSON.stringify(payload),
-            }).catch(() => {})
+            }).catch((err) => console.error('[Exportar y Vaciar] Error:', err))
         }
 
         dispatch({ type: 'clear-cart' })
