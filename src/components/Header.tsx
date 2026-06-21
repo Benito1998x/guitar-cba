@@ -2,16 +2,35 @@ import { useMemo, Dispatch } from "react"
 import type { CartItem } from "../types"
 import type { CartActions } from "../reducers/cart-reducer"
 
+const N8N_WEBHOOK_URL = import.meta.env.VITE_N8N_WEBHOOK_URL
+
 type HeaderProps = {
     cart: CartItem[]
     dispatch: Dispatch<CartActions>
 }
 
-export default function Header({ cart,  dispatch } : HeaderProps ) {
+export default function Header({ cart, dispatch }: HeaderProps) {
 
-    // State Derivado
-    const isEmpty = useMemo( () => cart.length === 0, [cart])
-    const cartTotal = useMemo( () => cart.reduce( (total, item ) => total + (item.quantity * item.price), 0), [cart] )
+    const isEmpty = useMemo(() => cart.length === 0, [cart])
+    const cartTotal = useMemo(() => cart.reduce((total, item) => total + (item.quantity * item.price), 0), [cart])
+
+    const handleExportAndClear = () => {
+        const payload = {
+            cart,
+            total: cartTotal,
+            timestamp: new Date().toISOString(),
+        }
+
+        if (N8N_WEBHOOK_URL) {
+            fetch(N8N_WEBHOOK_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            }).catch(() => {})
+        }
+
+        dispatch({ type: 'clear-cart' })
+    }
 
     return (
         <header className="py-5 header">
@@ -33,6 +52,17 @@ export default function Header({ cart,  dispatch } : HeaderProps ) {
                                     <p className="text-center">El carrito esta vacio</p>
                                 ) : (
                                 <>
+                                    <div className="d-flex justify-content-between align-items-center mb-3">
+                                        <p className="m-0 fw-bold">Carrito de Compras</p>
+                                        <button
+                                            className="btn btn-outline-danger btn-sm"
+                                            type="button"
+                                            onClick={handleExportAndClear}
+                                        >
+                                            Exportar y Vaciar
+                                        </button>
+                                    </div>
+
                                     <table className="w-100 table">
                                         <thead>
                                             <tr>
